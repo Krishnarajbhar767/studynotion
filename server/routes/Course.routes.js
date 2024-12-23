@@ -16,5 +16,5 @@ courseRouter.put("/update-section",isAuthenticated,isInstructor,updateSection);
 courseRouter.delete("/delete-section",isAuthenticated,isInstructor,deleteSection);
 courseRouter.post("/create-subsection",isAuthenticated,isInstructor,createSubSection);
 courseRouter.get("/showAllCategories",showAllCategories)
-courseRouter.post("/createCategory",isAuthenticated,isAdmin,createCategory)
+courseRouter.post("/createCategory",isAuthenticated,isAdmin,createCategory);
 export default courseRouter;

@@ -10,6 +10,9 @@ export const UserSchema = new Schema({
         required:[true, "Last Name Is required"],
         trim:true
     },
+    token:{
+        type:String,
+    },
     email: {
         type: String,
         required: true,

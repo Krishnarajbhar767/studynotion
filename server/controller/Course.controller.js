@@ -2,7 +2,7 @@ import { Category } from "../models/Category.model.js";
 import { User } from "../models/User.model.js";
 import { Course } from "../models/Course.model.js";
 import uploadImage from "../utils/imageUpload.js";
-
+import *as JWT  from "jsonwebtoken";
 export async function createCourse(req, res) {
   try {
     const { courseName, courseDescription, whatYouWillLearn, price, category } =

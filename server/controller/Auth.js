@@ -5,12 +5,12 @@
 import { User } from "../models/User.model.js";
 import { Otp } from "../models/Otpmodel.js";
 import otpGenerator from "otp-generator";
-import { Profile } from "../models/Profile.model.js"; 
+import { Profile } from "../models/Profile.model.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import { configDotenv } from "dotenv";
 import { sendMail } from "../utils/sendMail.js";
-configDotenv()
+configDotenv();
 export const signUp = async (req, res) => {
   try {
     const {
@@ -29,7 +29,7 @@ export const signUp = async (req, res) => {
       !email ||
       !password ||
       !confirmPassword ||
-      !accountType 
+      !accountType
     ) {
       return res.status(400).json({
         success: false,
@@ -53,10 +53,11 @@ export const signUp = async (req, res) => {
     }
 
     //  find thee most recent otp
-    const recentOtp = await Otp.findOne({ email }).sort({createdAt:-1}).limit(1) // need to undertand this
+    const recentOtp = await Otp.findOne({ email })
+      .sort({ createdAt: -1 })
+      .limit(1); // need to undertand this
 
     // Validate the otp
-    
 
     if (!recentOtp) {
       return res.status(400).json({
@@ -71,7 +72,7 @@ export const signUp = async (req, res) => {
     }
 
     let hashedPassword = await bcrypt.hash(password, 10);
-    console.log("hashed Password",hashedPassword);
+    console.log("hashed Password", hashedPassword);
     //  If evrything is fine then Succesfully Save The Data In Database
     const profileDetails = await Profile.create({
       gender: null,
@@ -79,7 +80,7 @@ export const signUp = async (req, res) => {
       about: null,
       contactNumber: null,
     });
-    const user =await User.create({
+    const user = await User.create({
       firstName,
       lastName,
       email,
@@ -92,7 +93,7 @@ export const signUp = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Sign Up Data Captured Successfully",
-      data:user,
+      data: user,
     });
   } catch (error) {
     console.log(error);
@@ -113,7 +114,7 @@ export const sendOtp = async (req, res) => {
     const existingUser = await User.findOne({ email: email });
 
     if (existingUser) {
-      console.log("User Already Exist")
+      console.log("User Already Exist");
       return res.status(401).json({
         success: false,
         message: "User Already Exist",
@@ -138,7 +139,7 @@ export const sendOtp = async (req, res) => {
       result = await Otp.findOne({ otp: OTP });
     }
 
-    const otpPayload = { email, otp:OTP };
+    const otpPayload = { email, otp: OTP };
 
     // create an entry in db
     const savedOTP = Otp.create(otpPayload);
@@ -159,129 +160,131 @@ export const sendOtp = async (req, res) => {
   }
 };
 
-
 // Login Controller
 
-export const login = async (req,res)=>{
-try {
-    const {email,password} = req.body;
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
     // validate The data
-    if (!email || !password ) {
-        return res.status(401).json({
-            succes:false,
-            message:"Please Enter All Requred Data."
-        })
+    if (!email || !password) {
+      return res.status(401).json({
+        succes: false,
+        message: "Please Enter All Requred Data.",
+      });
     }
 
-    // check is User Is Exist 
-    const user = await User.findOne({email}).populate("additionalDetails").exec();
+    // check is User Is Exist
+    const user = await User.findOne({ email })
+      .populate("additionalDetails")
+      .exec();
 
     if (!user) {
-        return res.status(401).json({
-            success:false,
-            message:"User Is Not regster plase signup first."
-        })
+      return res.status(401).json({
+        success: false,
+        message: "User Is Not regster plase signup first.",
+      });
     }
     // genaret JWT Token,After Password Matched
     const payload = {
-        email:user.email,
-        id:user._id,
-        accountType:user.accountType 
-    }
+      email: user.email,
+      id: user._id,
+      accountType: user.accountType,
+    };
     // console.log("Printing My All Password",password,user.password)
-    const validPassword = await bcrypt.compare(password , user.password);
+    const validPassword = await bcrypt.compare(password, user.password);
     // console.log("is Password Valid",validPassword)
-    if   (validPassword) {
-        const token = jwt.sign(payload,process.env.SECRET_KEY,{
-            expiresIn:"1h"
-        })
-        // console.log("Generated Token",token)
-        user.token = token;
-        user.password = null;
-         // create Cookies and send response
-         const option = {
-            expires:new Date(Date.now()+3*24*60*60*1000),
-            httpOnly:true
-         }
-        req.body.token = token;
-        return res.cookie("token",token,option).status(200).json({
-            succes:true,
-            token,
-            user,
-            message:"Logged IN SuccessFully"
-         })
-    }else{
-        return res.status(400).json({
-            success:false,
-            message:"password is incorecct"
-        })
+    if (validPassword) {
+      const token = jwt.sign(payload, process.env.SECRET_KEY, {
+        expiresIn: "24h",
+      });
+      // console.log("Generated Token",token)
+      user.token = token;
+      user.password = null;
+      // create Cookies and send response
+      const option = {
+        expires: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+      };
+      return res.cookie("token", token, option).status(200).json({
+        success: true,
+        token: token,
+        user: user,
+        message: "Loggin Successfull.",
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "password is incorecct",
+      });
     }
-
-} catch (error) {
+  } catch (error) {
     // console.log( "got From Login",error);
     return res.status(500).json({
-        success:false,
-        message:"lOGIN Failure Please try again"
-    })
-}
-}
-
+      success: false,
+      message: "lOGIN Failure Please try again",
+    });
+  }
+};
 
 // change password
 
-export const changePassword = async (req,res)=>{
-    // get data from req
-    try {
-      const {email,oldPassword,newPassword,confirmPassword} = req.body;
-      const loginUser = req.user;
-      console.log("Printing The User Data",loginUser)
-    if (!email || !oldPassword ||! confirmPassword ||!newPassword) {
+export const changePassword = async (req, res) => {
+  // get data from req
+  try {
+    const { email, oldPassword, newPassword, confirmPassword } = req.body;
+    const loginUser = req.user;
+    console.log("Printing The User Data", loginUser);
+    if (!email || !oldPassword || !confirmPassword || !newPassword) {
       return res.status(401).json({
-        success:false,
-        message:"Please Enter All Required Data.",
-      })
+        success: false,
+        message: "Please Enter All Required Data.",
+      });
     }
     // validation
-    const user = await User.findOne({loginUser});
+    const user = await User.findById(loginUser.id);
     if (!user) {
       return res.status(400).json({
-        success:false,
-        message:"User Dose Not Exist",
-      })
+        success: false,
+        message: "User Dose Not Exist",
+      });
     }
-    
-    if (bcrypt.compare(user.password,oldPassword)) {
+
+    if (!await bcrypt.compare(oldPassword,user.password )) {
       return res.status(401).json({
-        success:false,
-        message:"Old Password Do Not Match."
-      })
+        success: false,
+        message: "Old Password Do Not Match.",
+      });
     }
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
-        succes:false,
-        message:"New Password And Confirm Password Do Not Match"
-      })
+        succes: false,
+        message: "New Password And Confirm Password Do Not Match",
+      });
     }
     // if validation pass upadate Data
-    const hashedPassword = bcrypt.hash(newPassword,10);
+    const hashedPassword =await  bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
 
-    const updatedUser = await User.findOneAndUpdate({email},{password:hashedPassword},{new:true});
+    // const updatedUser = await User.findOneAndUpdate(
+    //   { email },
+    //   { password: hashedPassword },
+    //   { new: true }
+    // );
+    user.save();
     // send email
-    sendMail(email,"Password Changed","your Password Changed Succesfully");
+    sendMail(email, "Password Changed", "your Password Changed Succesfully");
 
     // retun response
     return res.status(200).json({
-      success:true,
-      message:"Password Chnaged Successfully...",
-      user:updatedUser,
-    })
-    } catch (error) {
-      console.log(error)
-      return res.status(500).json({
-        success:false,
-        message:`Something went Wrong While Changing The password : ${error.message}`,
-      })
-    }
-}
+      success: true,
+      message: "Password Chnaged Successfully...",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: `Something went Wrong While Changing The password : ${error.message}`,
+    });
+  }
+};

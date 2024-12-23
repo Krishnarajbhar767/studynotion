@@ -149,8 +149,10 @@ return async (dispach)=>{
                 toast.error(`${error.response.data.message}`);
               } else if (error.request) {
                 toast.error("Failed To Connect Sever");
-              } else {
-                toast.error("Unexpected Error", error.message);
+              } else if(error.message){
+                toast.error(`Unexepected Axios Error ${error.message}`)
+              }else{
+                toast.error(`Some Uncought Error ${error.message}`)
               }
         }finally{
                 dispach(setloading(false))
@@ -171,3 +173,4 @@ export function logOut(navigate) {
     navigate("/")
   }
 }
+

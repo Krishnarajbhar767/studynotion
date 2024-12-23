@@ -3,6 +3,7 @@ import { Course } from "../models/Course.model.js";
 import { Profile } from "../models/Profile.model.js";
 import { User } from "../models/User.model.js";
 import uploadFile from "../utils/imageUpload.js";
+import JWT from "jsonwebtoken"
 export async function updateProfile(req, res) {
   try {
     // HW: request schdule
@@ -120,29 +121,29 @@ export async function getAllUserDetails(req, res) {
   }
 }
 
-export async function getEnrolledCourses() {
-  try {
-    const userId = req.body.id;
-    const enrolledCourses = await Course.find({ user: userId });
+// export async function getEnrolledCourses() {
+//   try {
+//     const userId = req.body.id;
+//     const enrolledCourses = await Course.find({ user: userId });
 
-    if (!enrolledCourses) {
-      return res.status(403).json({
-        success: false,
-        message: "You Do Not Have Enrolled In Any Courses",
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      data: enrolledCourses,
-    });
-  } catch (error) {
-    (error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-}
+//     if (!enrolledCourses) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "You Do Not Have Enrolled In Any Courses",
+//       });
+//     }
+//     return res.status(200).json({
+//       success: true,
+//       data: enrolledCourses,
+//     });
+//   } catch (error) {
+//     (error);
+//     return res.status(500).json({
+//       success: false,
+//       error: error.message,
+//     });
+//   }
+// }
 
 export async function updateDisplayPicture() {
   try {
@@ -182,3 +183,39 @@ export async function updateDisplayPicture() {
     });
   }
 }
+
+export const  getEnrolledCourses = async(req,res)=>{
+  try {
+    const userId = req.user.id;
+    console.log("Printing UserID GetEnrolled Courses",userId)
+    const user = await User.findById(userId).populate({
+      path: "courses",
+      populate: {
+        path: "courseContent",
+        populate: {
+          path: "subSection",
+        },
+      },
+    })
+    .exec();
+    user.toObject();
+    if (!user) {
+      return res.status(400).json({
+        success:false,
+        message:"User Not Found",
+      })
+    };
+    return res.status(200).json({
+      success:true,
+      data:user.courses,
+      message:"Enrolled Course Fetched Successfully."
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success:false,
+      message:"Something Went Wrong While Fetching Enrolled Courses",
+      error:error.message
+    })
+  }
+  }
+  

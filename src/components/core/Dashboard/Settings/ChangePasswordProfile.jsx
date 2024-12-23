@@ -9,7 +9,8 @@ export default function ChangePasswordProfile() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const {email} = useSelector((state)=>state.profile.user);
-
+  const {loading} = useSelector((state)=>state.profile);
+  const {token} = useSelector((state)=>state.auth);
   const dispatch = useDispatch();
   const {
     register,
@@ -19,7 +20,7 @@ export default function ChangePasswordProfile() {
   } = useForm();
 
   const submitPasswordForm = (data) => {
-    dispatch(changePassword(data,email))
+    dispatch(changePassword(data,email,token,loading))
   };
 
   return (

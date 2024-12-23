@@ -9,8 +9,15 @@ configDotenv()
 
 export const isAuthenticated = async (req,res,next)=>{
 try {
-    // extract token
-    const token = req.cookies.token || req.body.token ;
+
+    const token =
+  req.cookies?.token ||
+  req.body?.token ||
+  (req.headers["authorization"]?.startsWith("Bearer ")
+    ? req.headers["authorization"].replace("Bearer ", "")
+    : null);
+
+    console.log("Printing the Token",token)
     if (!token) {
         return res.status(400).json({
             success:false,
@@ -30,7 +37,7 @@ try {
     }
     next()
 } catch (error) {
-    (error)
+    console.log(error)
     return res.status(500).json({
         success:false,
         message:"Something Went Wrong While validating the token"
