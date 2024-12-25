@@ -5,6 +5,7 @@ import { AUTHAPIS } from "../apis.js";
 import { setUser } from "../../redux/slices/profileSlice.js";
 import { resetCart } from "../../redux/slices/cartSlice.js";
 import { useDispatch } from "react-redux";
+import { resetCourseState, setCategories } from "../../redux/slices/courseSlice.js";
 export function getResetToken(email, setEmailSent) {
   return async (dispatch) => {
     dispatch(setloading(true));
@@ -161,14 +162,18 @@ return async (dispach)=>{
 }
 
 export function logOut(navigate) {
-  ("Function Entred")
+  console.log("ENter LOG OUt FN")
   return async(dispatch)=>{
-    ("ENtred CB")
+
     dispatch(setToken(null))
     dispatch(setUser(null))
+    dispatch(setCategories([]));
     dispatch(resetCart())
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
+    dispatch(resetCourseState())
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    // localStorage.removeItem("sublinks");
+ 
     toast.success("Logged Out")
     navigate("/")
   }

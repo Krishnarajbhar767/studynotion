@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 
 const initialState = {
   step: 1,
+  categories:localStorage.getItem("categories") ? JSON.parse(localStorage.getItem("categories")) :[],
   course: null,
   editCourse: false,
   paymentLoading: false,
@@ -28,12 +29,17 @@ const courseSlice = createSlice({
       state.course = null
       state.editCourse = false
     },
+    setCategories(state,value){
+      console.log("Getting Data",value)
+      state.categories = value.payload
+    }
   },
 })
 
 export const {
   setStep,
   setCourse,
+  setCategories,
   setEditCourse,
   setPaymentLoading,
   resetCourseState,

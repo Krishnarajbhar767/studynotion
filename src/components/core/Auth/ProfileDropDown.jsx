@@ -19,7 +19,6 @@ const navigate = useNavigate();
     setOpenDropDown(!openDropDown);
   }
 
-
   return (
     <div
       className="relative  group transition-all duration-200"
@@ -56,7 +55,7 @@ const navigate = useNavigate();
 
       </div>
     </div>
-  );
+  );logOut
 }
 
 export default ProfileDropDown;

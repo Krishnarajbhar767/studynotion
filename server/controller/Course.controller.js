@@ -5,14 +5,14 @@ import uploadImage from "../utils/imageUpload.js";
 import *as JWT  from "jsonwebtoken";
 export async function createCourse(req, res) {
   try {
-    const { courseName, courseDescription, whatYouWillLearn, price, category } =
+    const { courseName, courseDescription, whatYouWillLearn, price, category,instructions} =
       req.body; // get Data
 
     const thumbnail = req.files.thumbnailImage; // get thumbnail
 
     //validation
-
-    if (!courseName || courseDescription || !whatYouWillLearn || !category) {
+    console.log(courseName, courseDescription, whatYouWillLearn, price, category,instructions,thumbnail)
+    if (!courseName || !courseDescription || !whatYouWillLearn || !category) {
       res.status(400).json({
         success: false,
         message: "All Fieald Are Required",
@@ -21,7 +21,7 @@ export async function createCourse(req, res) {
 
     const userId = req.user.id;
     const instructorDetails = await User.findById(userId);
-    ("INstructor Details", instructorDetails);
+    // ("INstructor Details", instructorDetails);
 
     if (!instructorDetails) {
       return res.status(400).json({
@@ -81,7 +81,7 @@ export async function createCourse(req, res) {
       data: newCourse,
     });
   } catch (error) {
-    ("Some Error Accoured While Craeting New Course", error);
+    console.log("Some Error Accoured While Craeting New Course", error);
     return res.status(500).json({
       success: false,
       message: error.maassage,

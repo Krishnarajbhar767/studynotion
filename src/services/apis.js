@@ -22,5 +22,6 @@ export const SETTINGS_APIS = {
 };
 
 export const COURSES_APIS = {
-        GET_USER_ENROLLED_COURSES:BASE_URL+"/profile/get-enrolled-courses"
+        GET_USER_ENROLLED_COURSES:BASE_URL+"/profile/get-enrolled-courses", 
+        CREATE_COURSE:BASE_URL+"/course/create-course"  
 }

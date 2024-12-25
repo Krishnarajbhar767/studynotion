@@ -11,5 +11,7 @@ export default async function uploadFile(file,folder,height,quality) {
                 options.quality = quality;
         }
         options.resource_type = "auto";
-        return cloudinary.uploder.upload(file.tempFilePath,options)
+         
+        const response = await cloudinary.uploader.upload(file.tempFilePath,options)
+        return response.url;
 }

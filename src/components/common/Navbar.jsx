@@ -2,41 +2,50 @@ import React, { useEffect, useState } from "react";
 import { Link, matchPath, NavLink, useLocation } from "react-router-dom";
 import logo from "/src/assets/Logo/Logo-Full-Light.png";
 import { NavbarLinks } from "/src/data/navbar-links.js";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Instructor } from "../../../constant";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import ProfileDropDown from "../core/Auth/ProfileDropDown";
 import { apiConncetor } from "../../services/apiConnector";
 import { CATEGORIES } from "../../services/apis";
 import { IoIosArrowDropdownCircle } from "react-icons/io";
+import { setCategories } from "../../redux/slices/courseSlice";
 
 function Navbar() {
+  const dispatch = useDispatch()
   const { token } = useSelector((state) => state.auth);
   const { user } = useSelector((state) => state.profile);
-  (user)
+  const {categories} = useSelector((state)=>state.course);
   const { totalItems } = useSelector((state) => state.cart);
   const location = useLocation();
   const matchRoute = (route) => {
     return matchPath({ path: route }, location.pathname);
   };
 
+  const headers = {
+    Authorization: `Bearer ${token}`, // Add the token
+    'Content-Type': 'application/json', // Ensure the correct content type
+  }
   const [subLinks, setSubLink] = useState([]);
   const fetchSubLinks = async () => {
     try {
-      const result = await apiConncetor("GET", CATEGORIES.SHOW_ALL_CATEGORIES);
+      const result = await apiConncetor("GET", CATEGORIES.SHOW_ALL_CATEGORIES,token,headers);
       setSubLink(result.data.data);
+      console.log("Printing Datra",result.data.data)
+      dispatch(setCategories(result.data.data))
       localStorage.setItem("sublinks",JSON.stringify(result.data.data));
+      localStorage.setItem("categories",JSON.stringify(result.data.data));
     } catch (error) {
       ("Could Not Fetch the Categoies List", error);
     }
   };
   useEffect(() => {
-    if (localStorage.getItem("sublinks")) {
+    if (localStorage.getItem("sublinks") || localStorage.getItem("categories")) {
+      setCategories(JSON.parse(localStorage.getItem("categories")));
       setSubLink(JSON.parse(localStorage.getItem("sublinks")));
     }else{
       fetchSubLinks();      
     }
-
   }, []);
 
   return (
@@ -59,7 +68,7 @@ function Navbar() {
                       <div className="lg:w-72 invisible opacity-0 absolute left-[50%] top-[50%] flex flex-col-reverse   items-start justify-center bg-richblack-5 text-richblue-900 rounded-md p-4 group-hover:visible group-hover:opacity-100 -translate-x-[50%] translate-y-[24%] z-10 transition-all duration-200 gap-y-1">
                         {subLinks.map((elem, idx) => {
                           return (
-                            <NavLink to={`/${elem.name.split(" ").join("-")}`} className="cursor-pointer w-full text-md text-richblack-900 font-medium p-2 hover:bg-richblack-600 hover:text-richblack-100 transition-all duration-200 rounded">
+                            <NavLink key={idx} to={`/${elem.name.split(" ").join("-")}`} className="cursor-pointer w-full text-md text-richblack-900 font-medium p-2 hover:bg-richblack-600 hover:text-richblack-100 transition-all duration-200 rounded">
                               <p className="">{elem.name}</p>
                             </NavLink>
                           );
