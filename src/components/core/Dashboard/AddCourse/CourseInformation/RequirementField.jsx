@@ -28,6 +28,7 @@ function RequirementField({
 
   useEffect(() => {
     register(name, { required: true });
+    
   }, [name, register]);
 
   return (
@@ -40,7 +41,7 @@ function RequirementField({
         <div className="flex items-center space-x-2">
           <input
             id={name}
-            placeholder="Enter requirement"
+            placeholder="Enter requirements"
             value={requirement}
             onChange={(e) => setRequirement(e.target.value)}
             onKeyDown={(e)=>{

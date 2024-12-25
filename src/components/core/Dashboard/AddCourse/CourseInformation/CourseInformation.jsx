@@ -1,140 +1,146 @@
+// Import necessary modules and components
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useDispatch, useSelector } from "react-redux";
-import RequirementField from "./RequirementField";
-import { setCourse, setStep } from "../../../../../redux/slices/courseSlice";
-import { addCourseDetails } from "../../../../../services/opration/courseDetailsApi";
-import toast from "react-hot-toast";
+import { useForm } from "react-hook-form"; // Provides form handling functionality
+import { useDispatch, useSelector } from "react-redux"; // For Redux state management
+import RequirementField from "./RequirementField"; // Custom component for handling course requirements
+import { setCourse, setStep } from "../../../../../redux/slices/courseSlice"; // Redux actions
+import { addCourseDetails } from "../../../../../services/opration/courseDetailsApi"; // API service for course details
+import toast from "react-hot-toast"; // For user notifications
 
 function CourseInformation() {
+  // React Hook Form setup for managing form state
   const {
-    register,
-    handleSubmit,
-    setValue,
-    getValues,
-    formState: { errors },
+    register, // Used to register input fields
+    handleSubmit, // Used to handle form submission
+    setValue, // Used to set form field values dynamically
+    getValues, // Used to get current form field values
+    formState: { errors }, // Tracks validation errors
   } = useForm();
+
+  // Redux hooks to access and dispatch state
   const dispatch = useDispatch();
-  const { course, editCourse } = useSelector((state) => state.course);
-  const { token } = useSelector((state) => state.auth);
-  const [loading, setLoading] = useState(false);
+  const { course, editCourse } = useSelector((state) => state.course); // Accessing course-related state
+  const { token } = useSelector((state) => state.auth); // Accessing user authentication token
+
+  // Local state variables
+  const [loading, setLoading] = useState(false); // Loading indicator for API calls
   const [courseCategories, setCourseCategories] = useState(
-    JSON.parse(localStorage.getItem("categories"))
+    JSON.parse(localStorage.getItem("categories")) // Retrieve course categories from local storage
   );
+
+  // Pre-populate form fields if editing an existing course
   useEffect(() => {
     if (editCourse) {
-      setValue("courseTitle", course.name);
+      setValue("courseTitle", course.courseName);
       setValue("coursePrice", course.price);
       setValue("courseCategory", course.category);
       setValue("courseBenifits", course.whatYouWillLearn);
       setValue("courseRequirement", course.instructions);
-      setValue("courseImage", course.thubmnail);
-      setValue("courseTitle", course.name);
+      setValue("courseImage", course.thumbnail);
     }
-  }, []);
+  }, [editCourse, course, setValue]);
+
+  // Check if any form fields have been updated
   const isFormUpdated = () => {
     const currentValues = getValues();
-    if (
+    return (
       currentValues.courseTitle !== course.courseName ||
       currentValues.courseShortDesc !== course.courseDescription ||
       currentValues.coursePrice !== course.price ||
-      // currentValues.courseTags.toString() !== course.tag.toString() ||
       currentValues.courseBenefits !== course.whatYouWillLearn ||
       currentValues.courseCategory._id !== course.category._id ||
-      currentValues.courseRequirements.toString() !==
+      currentValues.requirements.toString() !==
         course.instructions.toString() ||
       currentValues.courseImage !== course.thumbnail
-    ) {
-      return true
-    }
-    return false
-  }
+    );
+  };
 
-  // create a new course 
-
-  const formData  = new FormData();
-
-  // Handler Next Button Click
+  // Form submission handler
   const onSubmit = async (data) => {
-    console.log(data)
-
+    console.log("Printing Course 1 JSX--->", data);
     if (editCourse) {
-      // const currentValues = getValues()
-      // console.log("changes after editing form values:", currentValues)
-      // console.log("now course:", course)
-      // console.log("Has Form Changed:", isFormUpdated())
+      // Handle course updates
       if (isFormUpdated()) {
-        const currentValues = getValues()
-        const formData = new FormData()
-        // console.log(data)
-        formData.append("courseId", course._id)
-        if (currentValues.courseTitle !== course.courseName) {
-          formData.append("courseName", data.courseTitle)
+        const formData = new FormData(); // Create a new FormData object for API submission
+        formData.append("courseId", course._id);
+
+        // Append only the updated fields
+        if (data.courseTitle !== course.courseName) {
+          formData.append("courseName", data.courseTitle);
         }
-        if (currentValues.courseShortDesc !== course.courseDescription) {
-          formData.append("courseDescription", data.courseShortDesc)
+        if (data.courseShortDesc !== course.courseDescription) {
+          formData.append("courseDescription", data.courseShortDesc);
         }
-        if (currentValues.coursePrice !== course.price) {
-          formData.append("price", data.coursePrice)
+        if (data.coursePrice !== course.price) {
+          formData.append("price", data.coursePrice);
         }
-   
-        if (currentValues.courseBenefits !== course.whatYouWillLearn) {
-          formData.append("whatYouWillLearn", data.courseBenefits)
+        if (data.courseBenefits !== course.whatYouWillLearn) {
+          formData.append("whatYouWillLearn", data.courseBenefits);
         }
-        if (currentValues.courseCategory._id !== course.category._id) {
-          formData.append("category", data.courseCategory)
+        if (data.courseCategory !== course.category) {
+          formData.append("category", data.courseCategory);
         }
         if (
-          currentValues.courseRequirements.toString() !==
-          course.instructions.toString()
+          data.requirements.toString() !== course.instructions.toString()
         ) {
           formData.append(
             "instructions",
-            JSON.stringify(data.courseRequirements)
-          )
+            JSON.stringify(data.requirements)
+          );
         }
-        if (currentValues.courseImage !== course.thumbnail) {
-          formData.append("thumbnailImage", data.courseImage)
+        if (data.courseImage !== course.thumbnail) {
+          formData.append("thumbnailImage", data.courseImage);
         }
-        // console.log("Edit Form data: ", formData)
-        setLoading(true)
-        const result = await editCourseDetails(formData, token)
-        setLoading(false)
+
+        setLoading(true); // Show loading indicator
+        const result = await editCourseDetails(formData, token); // API call to update the course
+        setLoading(false);
+
         if (result) {
-          dispatch(setStep(2))
-          dispatch(setCourse(result))
+          dispatch(setStep(2)); // Move to the next step in the form process
+          dispatch(setCourse(result)); // Update the course state in Redux
         }
       } else {
-        toast.error("No changes made to the form")
+        toast.error("No changes made to the form"); // Notify user if no updates are detected
       }
-      return
-    }
+      return;
+    } else {
+      // Handle creating a new course
+      const formData = new FormData();
+      formData.append("courseName", data.courseTitle);
+      formData.append("courseDescription", data.courseShortDesc);
+      formData.append("price", data.coursePrice);
+      // formData.append("tag", JSON.stringify(data.courseTags));
+      formData.append("whatYouWillLearn", data.courseBenefits);
+      formData.append("category", data.courseCategory);
+      formData.append("status", "Draft");
+      formData.append("instructions", JSON.stringify(data.requirements));
+      formData.append("thumbnailImage", data.courseImage[0]);
+      setLoading(true);
+      for (let [key, value] of formData.entries()) {
+        console.log("Krishna",formData)
+        console.log(`${key}:`, value);
+      }
 
-    const formData = new FormData()
-    formData.append("courseName", data.courseTitle)
-    formData.append("courseDescription", data.courseShortDesc)
-    formData.append("price", data.coursePrice)
-    formData.append("tag", JSON.stringify(data.courseTags))
-    formData.append("whatYouWillLearn", data.courseBenefits)
-    formData.append("category", data.courseCategory)
-    formData.append("status", "Draft")
-    formData.append("instructions", JSON.stringify(data.courseRequirements))
-    formData.append("thumbnailImage", data.courseImage)
-    setLoading(true)
-    const result = await addCourseDetails(formData, token);
-    if (result.success) {
-      console.log(result)
-      dispatch(setStep(2))
-      dispatch(setCourse(result))
+      const toastId = toast.loading("Please Wait...")
+      const result = await addCourseDetails(formData, token); // API call to add a new course
+      if (result) {
+        
+        dispatch(setStep(2)); // Move to the next step
+        dispatch(setCourse(result)); // Update the Redux state with new course data
+        toast.dismiss(toastId)
+        toast.success("Course Created Successfully.")
+      }
+      setLoading(false)
     }
-    setLoading(false)
-  }
+  };
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       class="space-y-8 rounded-md border border-richblack-700 bg-richblack-800 p-6 shadow-lg"
     >
+
       {/* <!-- Course Title --> */}
       <div class="flex flex-col space-y-2">
         <label
@@ -234,13 +240,18 @@ function CourseInformation() {
 
       {/* <!-- Course Thumbnail --> */}
       <div class="flex flex-col space-y-2">
-        <label class="text-sm font-medium text-richblack-5">
+        <label
+          class="text-sm font-medium text-richblack-5"
+          htmlFor="courseImage"
+        >
           Course Thumbnail
         </label>
         <input
+          id="courseImage"
+          name="courseImage"
           type="file"
           class="w-full rounded-md border border-richblack-600 bg-richblack-700 px-4 py-2 text-richblack-5 focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-          {...register("file", { required: true })}
+          {...register("courseImage", { required: true })}
         />
         {errors.file && (
           <span class="ml-2 text-xs tracking-wide text-pink-200">
@@ -274,36 +285,33 @@ function CourseInformation() {
       <RequirementField
         register={register}
         errors={errors}
-        name={"Requirements"}
-        label={"Requirements"}
+        name={"requirements"}
+        label={"requirements"}
         setValue={setValue}
         getValues={getValues}
       />
 
       {/* <!-- Buttons --> */}
-    
-        <div class="flex justify-end gap-x-2">
-    {
-      editCourse && (      <button
-        onClick={() => dispatch(setStep(2))}
-        type="button"
-        class="flex items-center gap-x-2 rounded-md bg-richblack-600 px-4 py-2 text-sm font-semibold text-richblack-100 hover:bg-richblack-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
-      >
-        Continue Without Saving
-      </button>)
-    }
-        {
-          !editCourse && (
-            <button
+
+      <div class="flex justify-end gap-x-2">
+        {editCourse && (
+          <button
+            onClick={() => dispatch(setStep(2))}
+            type="button"
+            class="flex items-center gap-x-2 rounded-md bg-richblack-600 px-4 py-2 text-sm font-semibold text-richblack-100 hover:bg-richblack-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          >
+            Continue Without Saving
+          </button>
+        )}
+        {!editCourse && (
+          <button
             type="submit"
             class="rounded-md bg-yellow-50 px-4 py-2 text-sm font-medium text-richblack-900 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           >
             {!editCourse ? "Next" : "Save Changes"}
           </button>
-          )
-        }
-        </div>
-   
+        )}
+      </div>
     </form>
   );
 }
